@@ -14,8 +14,10 @@ This project is a browser-based tool to detect and alert on clusters of similar 
 
 1. Clone the repository:
 
+```bash
 git clone https://github.com/your-username/proactive-support-alerts.git
 cd proactive-support-alerts
+```
 
 2. Open public/index.html directly in a web browser.
 
@@ -30,9 +32,9 @@ cd proactive-support-alerts
 5. Receive proactive alerts when clusters form!
 
 # Setting up EmailJS
-      Sign up for EmailJS: https://www.emailjs.com/
-      Create an Email Service and Email Template
-      Replace the following in the HTML:
+Sign up for EmailJS: https://www.emailjs.com/
+Create an Email Service and Email Template
+Replace the following in the HTML:
         "YOUR_PUBLIC_KEY" → your EmailJS Public Key
         "YOUR_SERVICE_ID" → your EmailJS Service ID
         "YOUR_TEMPLATE_ID" → your EmailJS Template ID
