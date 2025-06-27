@@ -1,6 +1,8 @@
-# Title: Proactive Support Alerts System
+# Title: 
+Proactive Support Alerts System
 
-# Goal: Detect clusters of similar support tickets within a specific time window and send proactive alert emails when thresholds are met.
+# Goal: 
+Detect clusters of similar support tickets within a specific time window and send proactive alert emails when thresholds are met.
 
 # Key Features:
 
