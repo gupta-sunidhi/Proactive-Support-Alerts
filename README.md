@@ -27,21 +27,21 @@ cd proactive-support-alerts
        Your email address
        Check interval
 
-4.Upload a JSON file of tickets (must contain fields like subject, created_at etc.)
+4. Upload a JSON file of tickets (must contain fields like subject, created_at etc.)
 
 5. Receive proactive alerts when clusters form!
 
 # Setting up EmailJS
-Sign up for EmailJS: https://www.emailjs.com/
-Create an Email Service and Email Template
-Replace the following in the HTML:
-        "YOUR_PUBLIC_KEY" → your EmailJS Public Key
-        "YOUR_SERVICE_ID" → your EmailJS Service ID
-        "YOUR_TEMPLATE_ID" → your EmailJS Template ID
+1. Sign up for EmailJS: https://www.emailjs.com/
+2. Create an Email Service and Email Template
+3. Replace the following in the HTML:
+          "YOUR_PUBLIC_KEY" → your EmailJS Public Key
+          "YOUR_SERVICE_ID" → your EmailJS Service ID
+          "YOUR_TEMPLATE_ID" → your EmailJS Template ID
 
   
 
-PROJECT STRUCTURE
+# PROJECT STRUCTURE
 
 /public
   └── index.html       ← Main frontend logic
