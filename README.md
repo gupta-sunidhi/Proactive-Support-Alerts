@@ -43,12 +43,13 @@ cd proactive-support-alerts
 
 # PROJECT STRUCTURE
 
+```bash
 /public
   └── index.html       ← Main frontend logic
 README.md              ← You are here!
 .gitignore             ← Ignore system files
 LICENSE                ← MIT by default
-
+```
 
 
 
