@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Proactive Support Alerts</title>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
@@ -44,31 +44,37 @@
   <div id="output"></div>
 
   <script>
+    // Initialize EmailJS
     (function() {
-      emailjs.init("YOUR_PUBLIC_KEY");
+      emailjs.init("1xJDGgBmcQ"); // 🔁 Replace this with your EmailJS public key
     })();
 
     const fileInput = document.getElementById('file-input');
     const outputDiv = document.getElementById('output');
     let monitoringInterval = null;
+    let loadedTickets = [];
 
+    // Utility Functions
     function filterTicketsByTime(tickets, hours) {
-      const cutoff = Date.now() - hours * 60 * 60 * 1000;
-      return tickets.filter(t => new Date(t.created_at).getTime() > cutoff);
+      const threshold = Date.now() - hours * 60 * 60 * 1000;
+      return tickets.filter(ticket => {
+        const time = new Date(ticket.created_at || ticket.timestamp).getTime();
+        return time > threshold;
+      });
     }
 
     function preprocessTickets(tickets) {
-      return tickets.map(t => ({
-        ...t,
-        combinedText: `${t.subject} ${t.description}`
+      return tickets.map(ticket => ({
+        ...ticket,
+        combinedText: `${ticket.subject} ${ticket.description}`
       }));
     }
 
     function cosineSimilarity(vecA, vecB) {
-      const dotProduct = vecA.reduce((sum, a, i) => sum + a * vecB[i], 0);
-      const magA = Math.sqrt(vecA.reduce((sum, val) => sum + val * val, 0));
-      const magB = Math.sqrt(vecB.reduce((sum, val) => sum + val * val, 0));
-      return dotProduct / (magA * magB);
+      const dotProduct = vecA.reduce((sum, val, i) => sum + val * vecB[i], 0);
+      const magnitudeA = Math.sqrt(vecA.reduce((sum, val) => sum + val * val, 0));
+      const magnitudeB = Math.sqrt(vecB.reduce((sum, val) => sum + val * val, 0));
+      return dotProduct / (magnitudeA * magnitudeB);
     }
 
     function clusterSimilarTickets(tickets, embeddings, threshold = 0.8) {
@@ -79,8 +85,11 @@
         if (visited[i]) continue;
         const cluster = [tickets[i]];
         visited[i] = true;
+
         for (let j = i + 1; j < tickets.length; j++) {
-          if (!visited[j] && cosineSimilarity(embeddings[i], embeddings[j]) > threshold) {
+          if (visited[j]) continue;
+          const sim = cosineSimilarity(embeddings[i], embeddings[j]);
+          if (sim >= threshold) {
             cluster.push(tickets[j]);
             visited[j] = true;
           }
@@ -94,25 +103,29 @@
     async function sendEmailAlert(cluster) {
       const templateParams = {
         to_email: document.getElementById('emailAddress').value,
-        subject: `\uD83D\uDEA8 Proactive Support Alert - ${cluster.length} Similar Cases`,
-        message: `\n${cluster.length} similar cases detected in the last ${document.getElementById('timeWindow').value} hours:\n${cluster.map(ticket => `\u2022 ${ticket.subject}`).join('\n')}`
+        subject: `🚨 Proactive Support Alert - ${cluster.length} Similar Cases`,
+        message: `
+          ${cluster.length} similar cases detected in the last ${document.getElementById('timeWindow').value} hours:\n
+          ${cluster.map(ticket => `• ${ticket.subject}`).join('\n')}
+        `
       };
 
       try {
-        await emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams);
-        console.log('Email alert sent successfully');
+        await emailjs.send('service_b0r290r', 'template_y6dr5y5', templateParams); // 🔁 Replace with real values
+        console.log('✅ Email alert sent.');
       } catch (error) {
-        console.error('Failed to send email alert:', error);
+        console.error('❌ Email send failed:', error);
       }
     }
 
     async function processTickets(tickets) {
+      console.log("🔍 Processing tickets...");
       const timeWindow = parseInt(document.getElementById('timeWindow').value);
       const alertThreshold = parseInt(document.getElementById('alertThreshold').value);
       const emailAddress = document.getElementById('emailAddress').value;
 
       if (!emailAddress) {
-        alert('Please enter an email address for alerts');
+        alert('Please enter an email address for alerts.');
         return;
       }
 
@@ -127,16 +140,19 @@
       const clusters = clusterSimilarTickets(preprocessed, embeddings);
       const alertClusters = clusters.filter(cluster => cluster.length >= alertThreshold);
 
-      for (const cluster of alertClusters) {
-        await sendEmailAlert(cluster);
+      if (alertClusters.length > 0) {
+        for (const cluster of alertClusters) {
+          await sendEmailAlert(cluster);
+        }
       }
 
-      outputDiv.innerHTML = `<p>Found ${clusters.length} clusters in the last ${timeWindow} hours:</p>`;
+      // UI Output
+      outputDiv.innerHTML = `<p>✅ Found ${clusters.length} clusters in the last ${timeWindow} hours.</p>`;
       clusters.forEach((group, idx) => {
         const clusterDiv = document.createElement('div');
         clusterDiv.className = 'cluster';
         const isAlert = group.length >= alertThreshold;
-        clusterDiv.innerHTML = `<h3>Cluster ${idx + 1} (${group.length} tickets) ${isAlert ? '\uD83D\uDEA8' : ''}</h3>`;
+        clusterDiv.innerHTML = `<h3>Cluster ${idx + 1} (${group.length} tickets) ${isAlert ? '🚨' : ''}</h3>`;
         group.forEach(ticket => {
           const p = document.createElement('p');
           p.className = 'ticket';
@@ -147,11 +163,51 @@
       });
     }
 
-    fileInput.addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      const text = await file.text();
-      const json = JSON.parse(text);
-      await processTickets(json);
+    // Load file
+    fileInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          loadedTickets = JSON.parse(e.target.result);
+          outputDiv.innerHTML = `<p>✅ Loaded ${loadedTickets.length} tickets.</p>`;
+        } catch (err) {
+          outputDiv.innerHTML = `<p>❌ Failed to parse JSON file.</p>`;
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    // Start monitoring
+    document.getElementById('startMonitoring').addEventListener('click', () => {
+      if (!loadedTickets.length) {
+        alert('Please upload a ticket file first.');
+        return;
+      }
+
+      if (monitoringInterval) {
+        alert('Monitoring is already running.');
+        return;
+      }
+
+      const checkIntervalMinutes = parseInt(document.getElementById('checkInterval').value) || 15;
+      monitoringInterval = setInterval(() => {
+        processTickets(loadedTickets);
+      }, checkIntervalMinutes * 60 * 1000);
+
+      processTickets(loadedTickets);
+      alert(`🔁 Monitoring started. Will check every ${checkIntervalMinutes} minutes.`);
+    });
+
+    // Stop monitoring
+    document.getElementById('stopMonitoring').addEventListener('click', () => {
+      if (monitoringInterval) {
+        clearInterval(monitoringInterval);
+        monitoringInterval = null;
+        alert('🛑 Monitoring stopped.');
+      }
     });
   </script>
 </body>
