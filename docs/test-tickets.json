@@ -1,0 +1,38 @@
+[
+  {
+    "id": "TICK001",
+    "subject": "Unable to login to the dashboard",
+    "description": "Customer reports that they are getting an authentication error when trying to log in.",
+    "createdAt": "2025-06-27T08:30:00Z"
+  },
+  {
+    "id": "TICK002",
+    "subject": "Login error on dashboard",
+    "description": "Login not working, authentication service fails.",
+    "createdAt": "2025-06-27T08:45:00Z"
+  },
+  {
+    "id": "TICK003",
+    "subject": "Reset password link expired",
+    "description": "User tried to reset password but the link expired before use.",
+    "createdAt": "2025-06-27T07:50:00Z"
+  },
+  {
+    "id": "TICK004",
+    "subject": "Cannot access analytics",
+    "description": "The analytics tab is not loading for multiple users.",
+    "createdAt": "2025-06-27T05:20:00Z"
+  },
+  {
+    "id": "TICK005",
+    "subject": "Dashboard authentication error",
+    "description": "User reports the dashboard login shows auth failure.",
+    "createdAt": "2025-06-27T08:50:00Z"
+  },
+  {
+    "id": "TICK006",
+    "subject": "App crashes on start",
+    "description": "Mobile app crashes immediately on startup for version 3.2.1.",
+    "createdAt": "2025-06-27T06:30:00Z"
+  }
+]
