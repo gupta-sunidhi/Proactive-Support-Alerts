@@ -27,10 +27,9 @@ cd proactive-support-alerts
        Your email address
        Check interval
 
-4. Upload a JSON file of tickets (must contain fields like subject, created_at etc.)
-          Sample file: gupta-sunidhi/Proactive-Support-Alerts/docs/test-tickets.json
+4. Upload a JSON file of tickets (must contain fields like subject, created_at etc. There is a Sample file under gupta-sunidhi/Proactive-Support-Alerts/docs/test-tickets.json)
 
-6. Receive proactive alerts when clusters form!
+5. Receive proactive alerts when clusters form!
 
 # Setting up EmailJS
 1. Sign up for EmailJS: https://www.emailjs.com/
