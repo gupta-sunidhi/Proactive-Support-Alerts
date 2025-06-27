@@ -15,7 +15,7 @@ This project is a browser-based tool to detect and alert on clusters of similar 
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/proactive-support-alerts.git
+git clone https://github.com/gupta-sunidhi/Proactive-Support-Alerts.git
 cd proactive-support-alerts
 ```
 
