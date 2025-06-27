@@ -20,32 +20,22 @@ cd proactive-support-alerts
 2. Open public/index.html directly in a web browser.
 
 3. Configure:
-
-# Time window (hours)
-
-# Cluster alert threshold (number of similar cases)
-
-# Your email address
-
-# Check interval
+       Time window (hours)
+       Cluster alert threshold (number of similar cases)
+       Your email address
+       Check interval
 
 4.Upload a JSON file of tickets (must contain fields like subject, created_at etc.)
 
 5. Receive proactive alerts when clusters form!
 
-Setting up EmailJS
-
-# Sign up for EmailJS: https://www.emailjs.com/
-
-# Create an Email Service and Email Template
-
-# Replace the following in the HTML:
-
-  "YOUR_PUBLIC_KEY" → your EmailJS Public Key
-
-  "YOUR_SERVICE_ID" → your EmailJS Service ID
-
-  "YOUR_TEMPLATE_ID" → your EmailJS Template ID
+# Setting up EmailJS
+      Sign up for EmailJS: https://www.emailjs.com/
+      Create an Email Service and Email Template
+      Replace the following in the HTML:
+        "YOUR_PUBLIC_KEY" → your EmailJS Public Key
+        "YOUR_SERVICE_ID" → your EmailJS Service ID
+        "YOUR_TEMPLATE_ID" → your EmailJS Template ID
 
   
 
