@@ -1,0 +1,158 @@
+<!-- File: public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Proactive Support Alerts</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    .cluster { margin-bottom: 2rem; padding: 1rem; border: 1px solid #ccc; border-radius: 8px; }
+    .ticket { margin-left: 1rem; }
+    .settings { margin-bottom: 2rem; padding: 1rem; background: #f5f5f5; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Proactive Support Alerts (Demo)</h1>
+
+  <div class="settings">
+    <h3>Alert Settings</h3>
+    <div>
+      <label for="timeWindow">Time Window (hours):</label>
+      <input type="number" id="timeWindow" value="4" min="1" max="24">
+    </div>
+    <div>
+      <label for="alertThreshold">Alert Threshold (cases):</label>
+      <input type="number" id="alertThreshold" value="3" min="1">
+    </div>
+    <div>
+      <label for="emailAddress">Email Address for Alerts:</label>
+      <input type="email" id="emailAddress" placeholder="your@email.com">
+    </div>
+    <div>
+      <label for="checkInterval">Check Interval (minutes):</label>
+      <input type="number" id="checkInterval" value="15" min="1">
+    </div>
+    <button id="startMonitoring">Start Monitoring</button>
+    <button id="stopMonitoring">Stop Monitoring</button>
+  </div>
+
+  <input type="file" id="file-input" accept="application/json" />
+  <div id="output"></div>
+
+  <script>
+    (function() {
+      emailjs.init("YOUR_PUBLIC_KEY");
+    })();
+
+    const fileInput = document.getElementById('file-input');
+    const outputDiv = document.getElementById('output');
+    let monitoringInterval = null;
+
+    function filterTicketsByTime(tickets, hours) {
+      const cutoff = Date.now() - hours * 60 * 60 * 1000;
+      return tickets.filter(t => new Date(t.created_at).getTime() > cutoff);
+    }
+
+    function preprocessTickets(tickets) {
+      return tickets.map(t => ({
+        ...t,
+        combinedText: `${t.subject} ${t.description}`
+      }));
+    }
+
+    function cosineSimilarity(vecA, vecB) {
+      const dotProduct = vecA.reduce((sum, a, i) => sum + a * vecB[i], 0);
+      const magA = Math.sqrt(vecA.reduce((sum, val) => sum + val * val, 0));
+      const magB = Math.sqrt(vecB.reduce((sum, val) => sum + val * val, 0));
+      return dotProduct / (magA * magB);
+    }
+
+    function clusterSimilarTickets(tickets, embeddings, threshold = 0.8) {
+      const clusters = [];
+      const visited = new Array(tickets.length).fill(false);
+
+      for (let i = 0; i < tickets.length; i++) {
+        if (visited[i]) continue;
+        const cluster = [tickets[i]];
+        visited[i] = true;
+        for (let j = i + 1; j < tickets.length; j++) {
+          if (!visited[j] && cosineSimilarity(embeddings[i], embeddings[j]) > threshold) {
+            cluster.push(tickets[j]);
+            visited[j] = true;
+          }
+        }
+        clusters.push(cluster);
+      }
+
+      return clusters;
+    }
+
+    async function sendEmailAlert(cluster) {
+      const templateParams = {
+        to_email: document.getElementById('emailAddress').value,
+        subject: `\uD83D\uDEA8 Proactive Support Alert - ${cluster.length} Similar Cases`,
+        message: `\n${cluster.length} similar cases detected in the last ${document.getElementById('timeWindow').value} hours:\n${cluster.map(ticket => `\u2022 ${ticket.subject}`).join('\n')}`
+      };
+
+      try {
+        await emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams);
+        console.log('Email alert sent successfully');
+      } catch (error) {
+        console.error('Failed to send email alert:', error);
+      }
+    }
+
+    async function processTickets(tickets) {
+      const timeWindow = parseInt(document.getElementById('timeWindow').value);
+      const alertThreshold = parseInt(document.getElementById('alertThreshold').value);
+      const emailAddress = document.getElementById('emailAddress').value;
+
+      if (!emailAddress) {
+        alert('Please enter an email address for alerts');
+        return;
+      }
+
+      const recentTickets = filterTicketsByTime(tickets, timeWindow);
+      const preprocessed = preprocessTickets(recentTickets);
+      const texts = preprocessed.map(t => t.combinedText);
+
+      const model = await use.load();
+      const embeddingsTensor = await model.embed(texts);
+      const embeddings = await embeddingsTensor.array();
+
+      const clusters = clusterSimilarTickets(preprocessed, embeddings);
+      const alertClusters = clusters.filter(cluster => cluster.length >= alertThreshold);
+
+      for (const cluster of alertClusters) {
+        await sendEmailAlert(cluster);
+      }
+
+      outputDiv.innerHTML = `<p>Found ${clusters.length} clusters in the last ${timeWindow} hours:</p>`;
+      clusters.forEach((group, idx) => {
+        const clusterDiv = document.createElement('div');
+        clusterDiv.className = 'cluster';
+        const isAlert = group.length >= alertThreshold;
+        clusterDiv.innerHTML = `<h3>Cluster ${idx + 1} (${group.length} tickets) ${isAlert ? '\uD83D\uDEA8' : ''}</h3>`;
+        group.forEach(ticket => {
+          const p = document.createElement('p');
+          p.className = 'ticket';
+          p.textContent = `- ${ticket.subject}`;
+          clusterDiv.appendChild(p);
+        });
+        outputDiv.appendChild(clusterDiv);
+      });
+    }
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      const text = await file.text();
+      const json = JSON.parse(text);
+      await processTickets(json);
+    });
+  </script>
+</body>
+</html>
